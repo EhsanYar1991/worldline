@@ -1,7 +1,7 @@
 package com.worldline.eyar.config;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -21,89 +21,58 @@ import java.util.Collections;
 @Configuration
 @EnableSwagger2
 @Profile("dev")
+@AllArgsConstructor
 public class SwaggerConfig {
 
     private static final String APP_NAME_KEY = "spring.application.name";
     private static final String DESCRIPTION_KEY = "spring.application.description";
     private static final String VERSION_KEY = "spring.application.version";
-//    private static final String AUTHORIZATION_SCOPE = "global";
-//    private static final String PASS_AS_TYPE = "header";
-//    private static final String AUTHORIZATION_VALUE = "Authorization";
-//    private static final String AUTHORIZATION_SCOPE_DESCRIPTION = "accessEverything";
-    private static final String CONTACT_NAME = "Ehsan Yar";
-    private static final String CONTACT_URL = "ehsanyar1991@gmail.com";
-    private static final String CONTACT_EMAIL = "https://github.com/EhsanYar1991";
+    private static final String TERMS = "spring.application.version";
+    private static final String LICENSE = "application.license";
+    private static final String LICENSE_URL = "application.license-url";
+    private static final String CONTACT_NAME = "application.contact-name";
+    private static final String CONTACT_EMAIL = "application.contact-email";
+    private static final String CONTACT_URL = "application.contact-url";
+    private static final String SWAGGER_BASE_URL_CONTEXT = "/swagger";
+    private static final String SWAGGER_UI_URL_CONTEXT = "/ui";
+    private static final String SWAGGER_REDIRECTION = "redirect:swagger-ui.html";
+    private static final String CONTROLLER_BASE_PACKAGE = "com.worldline.eyar.controller";
 
-    private final String appName;
-    private final String appDescription;
-    private final String version;
-
-
-    public SwaggerConfig(@Autowired Environment environment) {
-        this.appName = environment.getRequiredProperty(APP_NAME_KEY);
-        this.appDescription = environment.getRequiredProperty(DESCRIPTION_KEY);
-        this.version = environment.getRequiredProperty(VERSION_KEY);
-    }
-
+    private final Environment environment;
 
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
-//                .securityContexts(Collections.singletonList(securityContext()))
-//                .securitySchemes(Collections.singletonList(apiKey()))
                 .select()
-//                .apis(RequestHandlerSelectors.any())
-                .apis(RequestHandlerSelectors.basePackage("com.worldline.eyar.controller"))
+                .apis(RequestHandlerSelectors.basePackage(CONTROLLER_BASE_PACKAGE))
                 .paths(PathSelectors.any())
                 .build();
     }
 
 
-//    private ApiKey apiKey() {
-//        return new ApiKey(AUTHORIZATION_VALUE, AUTHORIZATION_VALUE, PASS_AS_TYPE);
-//    }
-
-
-//    private SecurityContext securityContext() {
-//        return SecurityContext.builder().securityReferences(defaultAuth()).build();
-//    }
-
-//    private List<SecurityReference> defaultAuth() {
-//        return Collections.singletonList(
-//                new SecurityReference(
-//                        AUTHORIZATION_VALUE,
-//                        new AuthorizationScope[]{new AuthorizationScope(AUTHORIZATION_SCOPE, AUTHORIZATION_SCOPE_DESCRIPTION)}
-//                )
-//        );
-//    }
-
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                appName,
-                appDescription,
-                version,
-                "Terms of service",
-                new Contact(CONTACT_NAME, CONTACT_URL, CONTACT_EMAIL),
-                "License of API",
-                "API license URL",
+                environment.getRequiredProperty(APP_NAME_KEY),
+                environment.getRequiredProperty(DESCRIPTION_KEY),
+                environment.getRequiredProperty(VERSION_KEY),
+                environment.getRequiredProperty(TERMS),
+                new Contact(environment.getRequiredProperty(CONTACT_NAME),
+                        environment.getRequiredProperty(CONTACT_URL),
+                        environment.getRequiredProperty(CONTACT_EMAIL)),
+                environment.getRequiredProperty(LICENSE),
+                environment.getRequiredProperty(LICENSE_URL),
                 Collections.emptyList());
     }
 
-//    @Primary
-//    @Bean
-//    public ApiListingScanner addExtraOperations(ApiDescriptionReader apiDescriptionReader, ApiModelReader apiModelReader, DocumentationPluginsManager pluginsManager) {
-//        return new FormLoginOperations(apiDescriptionReader, apiModelReader, pluginsManager);
-//    }
-
 
     @Controller
-    @RequestMapping("/swagger")
-    public class SwaggerController {
+    @RequestMapping(SWAGGER_BASE_URL_CONTEXT)
+    public static class SwaggerController {
 
-        @RequestMapping("/ui")
-        public String swagger(){
-            return "redirect:swagger-ui.html";
+        @RequestMapping(SWAGGER_UI_URL_CONTEXT)
+        public String swagger() {
+            return SWAGGER_REDIRECTION;
         }
     }
 
