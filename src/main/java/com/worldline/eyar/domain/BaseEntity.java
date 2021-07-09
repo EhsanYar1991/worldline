@@ -20,7 +20,7 @@ public class BaseEntity implements DBEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private String id;
+    private Long id;
 
     @Column(name = "ACTIVE")
     private Boolean active = Boolean.TRUE;
@@ -46,7 +46,7 @@ public class BaseEntity implements DBEntity {
     private Integer version;
 
     @Override
-    public String getId() {
+    public Long getId() {
         return this.id;
     }
 
