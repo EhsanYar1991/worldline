@@ -9,7 +9,6 @@ import com.worldline.eyar.repository.UserRepository;
 import com.worldline.eyar.service.BaseService;
 import com.worldline.eyar.service.ICrudService;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,24 +42,23 @@ public class UserService
     }
 
     private UserEntity getUserById(Long id) {
-        Optional<UserEntity> userOpt = userRepository.findById(id);
-        if (userOpt.isEmpty()) {
-            throw new BusinessException("User does not exist.");
-        }
-        return userOpt.get();
+        return userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User does not exist."));
     }
 
     public boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
 
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return getUserByUsername(username);
+    public UserEntity loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(String.format("%s does not exist.",username)));
     }
 
     @Override
     public UserResponse add(UserRequest userRequest) throws BusinessException {
-        return null;
+        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()){
+            throw new BusinessException(String.format("%s is duplicated",userRequest.getUsername()));
+        }
+        return makeResponse(userRepository.save(makeEntity(userRequest)));
     }
 
     @Override
@@ -92,6 +90,33 @@ public class UserService
 
     @Override
     public UserResponse makeResponse(UserEntity entity) throws BusinessException {
-        return null;
+        return UserResponse.builder()
+                .id(entity.getId())
+                .active(entity.getActive())
+                .authority(entity.getAuthority())
+                .email(entity.getEmail())
+                .generatedBy(entity.getGeneratedBy())
+                .lastModifiedBy(entity.getLastModifiedBy())
+                .lastname(entity.getLastname())
+                .modificationTime(entity.getModificationTime())
+                .name(entity.getName())
+                .username(entity.getUsername())
+                .submittedTime(entity.getSubmittedTime())
+                .version(entity.getVersion())
+                .build();
+    }
+
+    @Override
+    public UserEntity makeEntity(UserRequest request) throws BusinessException {
+        UserEntity entity = new UserEntity();
+        entity.setId(request.getId());
+        entity.setUsername(request.getUsername());
+        entity.setPassword(passwordEncoder.encode(request.getPassword()));
+        entity.setEmail(request.getEmail());
+        entity.setAuthority(request.getAuthority());
+        entity.setEmail(request.getEmail());
+        entity.setName(request.getName());
+        entity.setLastname(request.getLastname());
+        return entity;
     }
 }

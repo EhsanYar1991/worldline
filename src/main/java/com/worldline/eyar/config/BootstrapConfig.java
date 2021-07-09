@@ -29,8 +29,8 @@ public class BootstrapConfig {
     public CommandLineRunner initDefaultAdminUserAndPrivilegeRunner() {
         String adminUsername = environment.getRequiredProperty(ADMIN_USERNAME_KEY);
         return args -> {
-            UserEntity adminUser = userService.getUserByUsername(adminUsername);
-            if (adminUser == null) {
+            UserEntity adminUser;
+            if (!userService.userExists(adminUsername)) {
                 UserRequest adminRequest = new UserRequest();
                 adminRequest.setAuthority(Authority.ADMIN);
                 adminRequest.setUsername(adminUsername);
@@ -39,8 +39,12 @@ public class BootstrapConfig {
                 adminRequest.setName(environment.getRequiredProperty(ADMIN_NAME_KEY));
                 adminRequest.setLastname(environment.getRequiredProperty(ADMIN_LASTNAME_KEY));
                 userService.add(adminRequest);
-            } else if (!adminUser.isEnabled()) {
-                userService.activation(adminUser.getId(), Boolean.TRUE);
+            } else  {
+                adminUser = userService.loadUserByUsername(adminUsername);
+                if (!adminUser.isEnabled()) {
+                    adminUser = userService.loadUserByUsername(adminUsername);
+                    userService.activation(adminUser.getId(), Boolean.TRUE);
+                }
             }
         };
     }

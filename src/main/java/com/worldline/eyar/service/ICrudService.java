@@ -15,4 +15,5 @@ public interface ICrudService<REQUEST, RESPONSE extends Serializable, ENTITY ext
     RESPONSE get(Long id) throws BusinessException;
     ListWithTotalSizeResponse<RESPONSE> list(String search, int pageNumber , int pageSize) throws BusinessException;
     RESPONSE makeResponse(ENTITY entity) throws BusinessException;
+    ENTITY makeEntity(REQUEST request) throws BusinessException;
 }

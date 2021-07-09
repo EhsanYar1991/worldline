@@ -53,4 +53,9 @@ public class ProductService extends BaseService implements ICrudService<ProductR
     public ProductResponse makeResponse(ProductEntity entity) throws BusinessException {
         return null;
     }
+
+    @Override
+    public ProductEntity makeEntity(ProductRequest productRequest) throws BusinessException {
+        return null;
+    }
 }

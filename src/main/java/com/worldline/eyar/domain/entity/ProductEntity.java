@@ -2,16 +2,13 @@ package com.worldline.eyar.domain.entity;
 
 import com.worldline.eyar.domain.BaseEntity;
 import com.worldline.eyar.domain.FieldMetaData;
-import com.worldline.eyar.domain.enums.Authority;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.Collection;
-import java.util.Collections;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +16,8 @@ import java.util.Collections;
 @Builder
 @ToString(callSuper = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-@Entity(name = "PRODUCT")
-@Table
+@Entity
+@Table(name = "PRODUCT")
 public class ProductEntity extends BaseEntity {
 
     @Column(name = "TITLE", unique = true)

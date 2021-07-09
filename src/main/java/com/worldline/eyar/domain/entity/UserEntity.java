@@ -14,30 +14,29 @@ import java.util.Collections;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @ToString(exclude = "password")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-@Entity(name = "USER")
-@Table
+@Entity
+@Table(name = "USER")
 public class UserEntity extends BaseEntity implements UserDetails {
 
-    @Column(name = "USERNAME", unique = true)
+    @Column(name = "USERNAME", unique = true, nullable = false)
     private String username;
 
-    @Column(name = "PASSWORD")
+    @Column(name = "PASSWORD", nullable = false)
     private String password;
 
-    @Column(name = "ROLE")
+    @Column(name = "ROLE", nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Authority authority;
 
-    @Column(name = "EMAIL")
+    @Column(name = "EMAIL",nullable = false)
     private String email;
 
-    @Column(name = "NAME")
+    @Column(name = "NAME", nullable = false)
     private String name;
 
-    @Column(name = "LASTNAME")
+    @Column(name = "LASTNAME", nullable = false)
     private String lastname;
 
     @Override
@@ -47,17 +46,17 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override

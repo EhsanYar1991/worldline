@@ -22,7 +22,7 @@ public class BaseEntity implements DBEntity {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "ACTIVE")
+    @Column(name = "ACTIVE", nullable = false)
     private Boolean active = Boolean.TRUE;
 
     @CreatedBy

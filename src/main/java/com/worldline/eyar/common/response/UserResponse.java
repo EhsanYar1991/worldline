@@ -1,8 +1,30 @@
 package com.worldline.eyar.common.response;
 
 
-import com.worldline.eyar.common.GeneralResponse;
-import com.worldline.eyar.domain.entity.UserEntity;
+import com.worldline.eyar.domain.enums.Authority;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class UserResponse extends GeneralResponse<UserEntity> {
+import java.io.Serializable;
+import java.time.Instant;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserResponse implements Serializable {
+    private Long id;
+    private String username;
+    private Authority authority;
+    private String email;
+    private String name;
+    private String lastname;
+    private Boolean active;
+    private String generatedBy;
+    private String lastModifiedBy;
+    private Instant submittedTime;
+    private Instant modificationTime;
+    private Integer version;
 }
