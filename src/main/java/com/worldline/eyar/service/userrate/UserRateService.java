@@ -36,8 +36,8 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
     public UserRateResponse add(UserRateRequest request) throws BusinessException {
         if (userRateRepository.findByProductAndUser(
                 productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Product not found.")),
-                getCurrentUser() )
-                .isPresent()){
+                getCurrentUser())
+                .isPresent()) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "User has already rated.");
         }
         request.setId(null);
@@ -52,7 +52,7 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
         UserRateEntity userRate = userRateRepository.findById(request.getId())
                 .orElseThrow(() -> new BusinessException("User rate not found."));
         if ((!Authority.ADMIN.equals(getCurrentUser().getAuthority())) ||
-                (userRate.getUser() != null && !userRate.getUser().getUsername().equals(getCurrentUser().getName()))){
+                (userRate.getUser() != null && !userRate.getUser().getUsername().equals(getCurrentUser().getName()))) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "You are not authorized to change the user rate.");
         }
 
@@ -97,8 +97,9 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                     pcb.equal(productRoot.get(ProductEntity.ProductEntityFields.ACTIVE.getField()), Boolean.TRUE)
             ));
             return cb.and(
-                    cb.in(entity.get(UserRateEntity.UserRateEntityFields.PRODUCT.getField()).in(products)),
-                    cb.in(entity.get(UserRateEntity.UserRateEntityFields.USER.getField()).in(users)),
+                    cb.or(
+                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.PRODUCT.getField()).in(products)),
+                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.USER.getField()).in(users))),
                     cb.equal(entity.get(UserRateEntity.UserRateEntityFields.ACTIVE.getField()), Boolean.TRUE)
             );
         }, PageRequest.of(pageNumber, pageSize, Sort.by(UserRateEntity.UserRateEntityFields.MODIFICATION_TIME.getField())));
@@ -121,19 +122,19 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
     public UserRateResponse makeResponse(UserRateEntity entity) throws BusinessException {
         return UserRateResponse.builder()
                 .id(entity.getId())
-                .product( entity.getProduct() != null ?
+                .product(entity.getProduct() != null ?
                         UserRateResponse.LazyProductResponse.builder()
                                 .id(entity.getProduct().getId())
                                 .title(entity.getProduct().getTitle())
                                 .build() :
                         null)
-                .user( entity.getUser() != null ?
+                .user(entity.getUser() != null ?
                         UserRateResponse.LazyUserResponse.builder()
-                        .id(entity.getUser().getId())
-                        .username(entity.getUser().getUsername())
-                        .name(entity.getUser().getName())
-                        .lastname(entity.getUser().getLastname())
-                        .build() :
+                                .id(entity.getUser().getId())
+                                .username(entity.getUser().getUsername())
+                                .name(entity.getUser().getName())
+                                .lastname(entity.getUser().getLastname())
+                                .build() :
                         null)
                 .rate(entity.getRate())
                 .comment(entity.getComment())
