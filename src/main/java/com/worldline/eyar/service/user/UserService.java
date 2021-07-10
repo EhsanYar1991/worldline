@@ -9,12 +9,15 @@ import com.worldline.eyar.repository.UserRepository;
 import com.worldline.eyar.service.BaseService;
 import com.worldline.eyar.service.ICrudService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -27,22 +30,21 @@ public class UserService
     private final PasswordEncoder passwordEncoder;
 
 
-    public UserResponse changePassword(String username, String password) {
-        UserEntity user = getUserByUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
+    public UserResponse changePassword(Long id, String oldPassword, String newPassword) {
+        UserEntity user = getUserById(id);
+        if (!passwordEncoder.encode(oldPassword).equals(user.getPassword())) {
+            throw new BusinessException("old password is incorrect.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
         return makeResponse(userRepository.save(user));
     }
 
     public UserEntity getUserByUsername(String username) {
-        Optional<UserEntity> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isEmpty()) {
-            throw new BusinessException(String.format("%s does not exist.", username));
-        }
-        return userOpt.get();
+        return userRepository.findByUsername(username).orElseThrow(() -> new BusinessException(String.format("%s does not exist.", username)));
     }
 
     private UserEntity getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User does not exist."));
+        return userRepository.findById(id).orElseThrow(() -> new BusinessException("User does not exist."));
     }
 
     public boolean userExists(String username) {
@@ -50,25 +52,37 @@ public class UserService
     }
 
     public UserEntity loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(String.format("%s does not exist.",username)));
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(String.format("%s does not exist.", username)));
     }
 
     @Override
-    public UserResponse add(UserRequest userRequest) throws BusinessException {
-        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()){
-            throw new BusinessException(String.format("%s is duplicated",userRequest.getUsername()));
+    public UserResponse add(UserRequest request) throws BusinessException {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new BusinessException(String.format("%s is duplicated", request.getUsername()));
         }
-        return makeResponse(userRepository.save(makeEntity(userRequest)));
+        return makeResponse(userRepository.save(makeEntity(request)));
     }
 
     @Override
-    public UserResponse edit(UserRequest edit_request) throws BusinessException {
-        return null;
+    public UserResponse edit(UserRequest request) throws BusinessException {
+        if (request.getId() == null || request.getId().equals(0L)) {
+            throw new BusinessException("id must be determined");
+        }
+        userRepository.findById(request.getId())
+                .orElseThrow(() -> new BusinessException("User not found."));
+        userRepository.findByUsername(request.getUsername()).ifPresent(byUsername -> {
+            if (byUsername.getId().equals(request.getId())) {
+                throw new BusinessException("username is duplicated.");
+            }
+        });
+        return makeResponse(makeEntity(request));
     }
 
     @Override
     public UserResponse delete(Long id) throws BusinessException {
-        return null;
+        UserEntity user = getUserById(id);
+        userRepository.delete(user);
+        return makeResponse(user);
     }
 
     @Override
@@ -80,12 +94,29 @@ public class UserService
 
     @Override
     public UserResponse get(Long id) throws BusinessException {
-        return null;
+        return makeResponse(getUserById(id));
     }
 
     @Override
     public ListWithTotalSizeResponse<UserResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
-        return null;
+        Page<UserEntity> page = userRepository.findAll((entity, cq, cb) -> {
+            final String s = "%" + search.toLowerCase() + "%";
+            return cb.and(
+                    cb.like(entity.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
+                    cb.like(entity.get(UserEntity.UserEntityFields.NAME.getField()), s),
+                    cb.like(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
+                    cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+            );
+
+        }, PageRequest.of(pageNumber, pageSize, Sort.by(UserEntity.UserEntityFields.MODIFICATION_TIME.getField())));
+        ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
+                .list(page.get().map(this::makeResponse).collect(Collectors.toList()))
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalPage(page.getTotalPages())
+                .totalSize(page.getTotalElements())
+                .build();
+        return (ListWithTotalSizeResponse<UserResponse>) listWithTotalSizeResponse;
     }
 
     @Override

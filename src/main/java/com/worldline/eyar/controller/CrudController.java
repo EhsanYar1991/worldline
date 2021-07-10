@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -24,13 +25,13 @@ public class CrudController<REQUEST, RESPONSE extends Serializable> extends Base
     }
 
     @PostMapping
-    public ResponseEntity<GeneralResponse<?>> add(REQUEST request) {
+    public ResponseEntity<GeneralResponse<?>> add(@Valid REQUEST request) {
         RESPONSE add = getCrudService().add(request);
         return okResponse(add);
     }
 
     @PutMapping
-    public ResponseEntity<GeneralResponse<?>> edit(REQUEST request) {
+    public ResponseEntity<GeneralResponse<?>> edit(@Valid REQUEST request) {
         RESPONSE edit = getCrudService().edit(request);
         return okResponse(edit);
     }
@@ -51,8 +52,8 @@ public class CrudController<REQUEST, RESPONSE extends Serializable> extends Base
         return okResponse(deleted);
     }
 
-    @GetMapping
-    public ResponseEntity<GeneralResponse<?>> getOrList(@RequestParam(value = "id", required = false) Long id,
+    @GetMapping({"/","/{id}"})
+    public ResponseEntity<GeneralResponse<?>> getOrList(@PathVariable(value = "id", required = false) Long id,
                                                         @RequestParam(value = "search", required = false, defaultValue = "") String search,
                                                         @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
                                                         @RequestParam(value = "size", required = false, defaultValue = "15") Integer size) {
