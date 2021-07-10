@@ -21,7 +21,7 @@ public class UserRateResponse implements Serializable {
 
     @Data
     @Builder
-    public class LazyUserResponse {
+    public static class LazyUserResponse {
         private Long id;
         private String username;
         private String name;
@@ -30,7 +30,7 @@ public class UserRateResponse implements Serializable {
 
     @Data
     @Builder
-    public class LazyProductResponse {
+    public static class LazyProductResponse {
         private Long id;
         private String title;
     }

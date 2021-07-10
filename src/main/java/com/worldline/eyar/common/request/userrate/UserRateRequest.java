@@ -9,11 +9,10 @@ import javax.validation.constraints.NotNull;
 @Data
 public class UserRateRequest {
 
+    private Long id;
+
     @NotNull(message = "product id must be determined")
     private Long productId;
-
-    @NotNull(message = "user id must be determined")
-    private Long userId;
 
     private String comment;
 

@@ -40,8 +40,8 @@ public class UserRateEntity extends BaseEntity {
 
 
     public interface UserRateEntityFields extends BaseEntityFields{
-        FieldMetaData<Long> PRODUCT_ID = new FieldMetaData<>("productId");
-        FieldMetaData<Long> USER_ID = new FieldMetaData<>("userId");
+        FieldMetaData<Long> PRODUCT = new FieldMetaData<>("product");
+        FieldMetaData<Long> USER = new FieldMetaData<>("user");
         FieldMetaData<Integer> RATE = new FieldMetaData<>("rate");
         FieldMetaData<String> COMMENT = new FieldMetaData<>("comment");
     }

@@ -4,7 +4,6 @@ import com.worldline.eyar.common.ListWithTotalSizeResponse;
 import com.worldline.eyar.common.request.product.ProductRequest;
 import com.worldline.eyar.common.response.product.ProductResponse;
 import com.worldline.eyar.domain.entity.ProductEntity;
-import com.worldline.eyar.domain.entity.UserEntity;
 import com.worldline.eyar.exception.BusinessException;
 import com.worldline.eyar.repository.ProductRepository;
 import com.worldline.eyar.service.BaseService;
@@ -76,9 +75,10 @@ public class ProductService extends BaseService implements ICrudService<ProductR
             final String s = "%" + search.toLowerCase() + "%";
             return cb.and(
                     cb.like(entity.get(ProductEntity.ProductEntityFields.TITLE.getField()), s),
-                    cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s)
+                    cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s),
+                    cb.equal(entity.get(ProductEntity.ProductEntityFields.ACTIVE.getField()), Boolean.TRUE)
             );
-        }, PageRequest.of(pageNumber, pageSize, Sort.by(UserEntity.UserEntityFields.MODIFICATION_TIME.getField())));
+        }, PageRequest.of(pageNumber, pageSize, Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
                 .list(page.get().map(this::makeResponse).collect(Collectors.toList()))
                 .page(page.getNumber())
