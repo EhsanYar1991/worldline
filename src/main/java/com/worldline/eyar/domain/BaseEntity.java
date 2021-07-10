@@ -43,9 +43,6 @@ public class BaseEntity implements DBEntity {
     @Column(name = "MODIFICATION_TIME")
     private Instant modificationTime;
 
-    @Version
-    @Column(name = "VERSION")
-    private Integer version;
 
     @Override
     public Long getId() {

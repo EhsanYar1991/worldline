@@ -11,6 +11,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @ToString
 public class GeneralResponse<T extends Serializable> implements Serializable {
+
+    private static final long serialVersionUID = -1398211413052170256L;
+
     private HttpStatus status;
     private T body;
 }

@@ -36,7 +36,9 @@ public class ProductEntity extends BaseEntity {
 
 
     public Double getRate() {
-        return userRateEntities.stream().mapToInt(UserRateEntity::getRate).average().getAsDouble();
+        return userRateEntities != null ?
+                userRateEntities.stream().mapToInt(UserRateEntity::getRate).average().orElse(0) :
+                null;
     }
 
     public interface ProductEntityFields extends BaseEntityFields{

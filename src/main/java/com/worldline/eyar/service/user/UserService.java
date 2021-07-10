@@ -135,7 +135,6 @@ public class UserService
                 .name(entity.getName())
                 .username(entity.getUsername())
                 .submittedTime(entity.getSubmittedTime())
-                .version(entity.getVersion())
                 .build();
     }
 

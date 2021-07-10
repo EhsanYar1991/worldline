@@ -21,7 +21,7 @@ public class BusinessException extends RuntimeException {
         this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
-    public BusinessException(String message, Throwable cause, HttpStatus httpStatus) {
+    public BusinessException(HttpStatus httpStatus, String message, Throwable cause) {
         super(message, cause);
         this.httpStatus = httpStatus;
     }
@@ -31,9 +31,8 @@ public class BusinessException extends RuntimeException {
         this.httpStatus = httpStatus;
     }
 
-    public BusinessException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, HttpStatus httpStatus) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        this.httpStatus = httpStatus;
+    public BusinessException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     public HttpStatus getHttpStatus() {

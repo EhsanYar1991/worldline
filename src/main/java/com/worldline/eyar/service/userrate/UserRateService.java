@@ -142,8 +142,6 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                 .rate(entity.getRate())
                 .modificationTime(entity.getModificationTime())
                 .submittedTime(entity.getSubmittedTime())
-                .version(entity.getVersion())
-                .version(entity.getVersion())
                 .build();
     }
 

@@ -105,9 +105,7 @@ public class ProductService extends BaseService implements ICrudService<ProductR
                 .modificationTime(entity.getModificationTime())
                 .submittedTime(entity.getSubmittedTime())
                 .title(entity.getTitle())
-                .version(entity.getVersion())
                 .title(entity.getTitle())
-                .version(entity.getVersion())
                 .build();
     }
 
