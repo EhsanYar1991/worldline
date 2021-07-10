@@ -2,7 +2,7 @@ package com.worldline.eyar.service.user;
 
 import com.worldline.eyar.common.ListWithTotalSizeResponse;
 import com.worldline.eyar.common.request.user.UserRequest;
-import com.worldline.eyar.common.response.UserResponse;
+import com.worldline.eyar.common.response.user.UserResponse;
 import com.worldline.eyar.domain.entity.UserEntity;
 import com.worldline.eyar.exception.BusinessException;
 import com.worldline.eyar.repository.UserRepository;
@@ -71,7 +71,7 @@ public class UserService
         userRepository.findById(request.getId())
                 .orElseThrow(() -> new BusinessException("User not found."));
         userRepository.findByUsername(request.getUsername()).ifPresent(byUsername -> {
-            if (byUsername.getId().equals(request.getId())) {
+            if (!byUsername.getId().equals(request.getId())) {
                 throw new BusinessException("username is duplicated.");
             }
         });

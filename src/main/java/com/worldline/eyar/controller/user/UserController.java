@@ -1,7 +1,7 @@
 package com.worldline.eyar.controller.user;
 
 import com.worldline.eyar.common.request.user.UserRequest;
-import com.worldline.eyar.common.response.UserResponse;
+import com.worldline.eyar.common.response.user.UserResponse;
 import com.worldline.eyar.controller.CrudController;
 import com.worldline.eyar.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

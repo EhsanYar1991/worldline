@@ -20,6 +20,7 @@ import java.util.Collections;
 @Table(name = "USER")
 public class UserEntity extends BaseEntity implements UserDetails {
 
+    @EqualsAndHashCode.Include
     @Column(name = "USERNAME", unique = true, nullable = false)
     private String username;
 

@@ -1,4 +1,4 @@
-package com.worldline.eyar.common.response;
+package com.worldline.eyar.common.response.user;
 
 
 import com.worldline.eyar.domain.enums.Authority;
@@ -15,6 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse implements Serializable {
+
     private Long id;
     private String username;
     private Authority authority;
@@ -27,4 +28,5 @@ public class UserResponse implements Serializable {
     private Instant submittedTime;
     private Instant modificationTime;
     private Integer version;
+
 }
