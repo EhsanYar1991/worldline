@@ -1,7 +1,7 @@
 package com.worldline.eyar.config;
 
 
-import com.worldline.eyar.config.security.FormLoginOperations;
+import com.worldline.eyar.config.security.RegistrationAndLoginFormOperations;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -101,7 +101,7 @@ public class SwaggerConfig {
     @Primary
     @Bean
     public ApiListingScanner addExtraOperations(ApiDescriptionReader apiDescriptionReader, ApiModelReader apiModelReader, DocumentationPluginsManager pluginsManager) {
-        return new FormLoginOperations(apiDescriptionReader, apiModelReader, pluginsManager);
+        return new RegistrationAndLoginFormOperations(apiDescriptionReader, apiModelReader, pluginsManager);
     }
 
 
