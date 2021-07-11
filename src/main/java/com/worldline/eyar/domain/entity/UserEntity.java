@@ -27,7 +27,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "PASSWORD", nullable = false)
     private String password;
 
-    @Column(name = "ROLE", nullable = false)
+    @Column(name = "AUTHORITY", nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Authority authority;
 

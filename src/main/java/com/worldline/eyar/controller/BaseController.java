@@ -10,6 +10,9 @@ import java.io.Serializable;
 @CrossOrigin
 public class BaseController {
 
+    protected static final String ALL_AUTHORITY = "hasAnyAuthority('ADMIN','USER')";
+    protected static final String ADMIN_AUTHORITY = "hasAuthority('ADMIN')";
+
 
     protected <T extends Serializable> ResponseEntity<GeneralResponse<?>> okResponse(T body) {
         return ResponseEntity.ok(GeneralResponse.builder().status(HttpStatus.OK).body(body).build());

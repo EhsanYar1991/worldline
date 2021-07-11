@@ -24,10 +24,6 @@ public class CrudController<REQUEST, RESPONSE extends Serializable> extends Base
     private static final String PAGE_SIZE_PARAM = "page";
     private static final String ACTIVE_PARAM = "size";
 
-    private static final String ALL_AUTHORITY = "hasAnyAuthority('ADMIN','USER')";
-    private static final String ADMIN_AUTHORITY = "hasAuthority('ADMIN')";
-
-
 
     private final ICrudService<REQUEST,RESPONSE,?> crudService;
 

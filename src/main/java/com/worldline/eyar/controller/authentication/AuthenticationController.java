@@ -1,10 +1,12 @@
 package com.worldline.eyar.controller.authentication;
 
 import com.worldline.eyar.common.authentication.AuthenticationRequest;
+import com.worldline.eyar.common.request.user.RegisterRequest;
 import com.worldline.eyar.controller.BaseController;
 import com.worldline.eyar.service.authentication.AuthenticationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,6 +21,7 @@ public class AuthenticationController extends BaseController {
     private static final String LOGIN_URL = "/login";
     private static final String AUTHENTICATE_URL = "/authenticate";
     private static final String CURRENT_USER_INFO = "/user-info";
+    public static final String USER_REGISTRATION = "/register";
     private static final String USERNAME_PARAM = "username";
     private static final String PASSWORD_PARAM = "password";
     private static final String USERNAME_VALIDATION_MSG = "username must be determined.";
@@ -37,9 +40,15 @@ public class AuthenticationController extends BaseController {
         return okResponse(authenticationService.authenticate(authenticationRequest));
     }
 
+    @PreAuthorize(ALL_AUTHORITY)
     @GetMapping(value = CURRENT_USER_INFO)
     public ResponseEntity<?> getCurrentUserInfo() {
         return okResponse(authenticationService.getCurrentUserInfo());
+    }
+
+    @PostMapping(USER_REGISTRATION)
+    public ResponseEntity<?> register(@Valid RegisterRequest request) {
+        return okResponse(authenticationService.register(request));
     }
 
 }

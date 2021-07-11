@@ -33,7 +33,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             "/v2/api-docs"};
     private static final String LOGIN_URL = "/auth/login";
     private static final String AUTHENTICATE_URL = "/auth/authenticate";
-    private static final String SWAGGER_URL =  "/swagger-ui.html";
+    private static final String REGISTRATION_URL = "/auth/register";
+    private static final String SWAGGER_URL = "/swagger-ui.html";
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
@@ -55,7 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeRequests().antMatchers(AUTHENTICATE_URL, LOGIN_URL, SWAGGER_URL).permitAll().
+                .authorizeRequests().antMatchers(AUTHENTICATE_URL, LOGIN_URL, REGISTRATION_URL, SWAGGER_URL).permitAll().
                 anyRequest().authenticated().and().
                 exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

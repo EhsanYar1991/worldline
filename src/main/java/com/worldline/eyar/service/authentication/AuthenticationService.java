@@ -1,9 +1,12 @@
 package com.worldline.eyar.service.authentication;
 
 import com.worldline.eyar.common.authentication.AuthenticationRequest;
+import com.worldline.eyar.common.request.user.RegisterRequest;
+import com.worldline.eyar.common.request.user.UserRequest;
 import com.worldline.eyar.common.response.authentication.AuthenticationResponse;
 import com.worldline.eyar.common.response.user.UserResponse;
 import com.worldline.eyar.config.security.JwtTokenUtil;
+import com.worldline.eyar.domain.enums.Authority;
 import com.worldline.eyar.exception.BusinessException;
 import com.worldline.eyar.service.BaseService;
 import com.worldline.eyar.service.user.UserService;
@@ -44,5 +47,17 @@ public class AuthenticationService extends BaseService {
 
     public UserResponse getCurrentUserInfo() {
         return userService.makeResponse(getCurrentUser());
+    }
+
+    public UserResponse register(RegisterRequest request) {
+        return userService.add(UserRequest.builder()
+                .id(null)
+                .authority(Authority.USER)
+                .email(request.getEmail())
+                .lastname(request.getLastname())
+                .name(request.getName())
+                .password(request.getPassword())
+                .username(request.getUsername())
+                .build());
     }
 }

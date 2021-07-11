@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
+
 @RestControllerAdvice
 @Slf4j
 public class RestExceptionHandler {
@@ -18,6 +20,13 @@ public class RestExceptionHandler {
         log.error(exception.getLocalizedMessage(), exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 GeneralResponse.builder().body(exception).status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<?> exceptionHandler(AccessDeniedException exception) {
+        log.error(exception.getLocalizedMessage(), exception);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                GeneralResponse.builder().body(exception).status(HttpStatus.FORBIDDEN).build());
     }
 
     @ExceptionHandler(value = BusinessException.class)
