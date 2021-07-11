@@ -6,6 +6,7 @@ import com.worldline.eyar.common.response.product.ProductResponse;
 import com.worldline.eyar.domain.BaseEntity;
 import com.worldline.eyar.domain.entity.ProductEntity;
 import com.worldline.eyar.exception.BusinessException;
+import com.worldline.eyar.repository.ProductCategoryRepository;
 import com.worldline.eyar.repository.ProductRepository;
 import com.worldline.eyar.service.BaseService;
 import com.worldline.eyar.service.ICrudService;
@@ -13,6 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class ProductService extends BaseService implements ICrudService<ProductRequest, ProductResponse, ProductEntity> {
 
     private final ProductRepository productRepository;
+    private final ProductCategoryRepository productCategoryRepository;
 
     @Override
     public ProductResponse add(ProductRequest request) throws BusinessException {
@@ -45,6 +48,10 @@ public class ProductService extends BaseService implements ICrudService<ProductR
                 throw new BusinessException("title is duplicated.");
             }
         });
+        product.setCategory(productCategoryRepository.findById(request.getProductCategoryId()).orElseThrow(
+                () -> new BusinessException(HttpStatus.BAD_REQUEST, "Product category not found.")
+        ));
+        product.setPrice(request.getPrice());
         product.setTitle(request.getTitle());
         product.setDescription(request.getDescription());
         product.setImagesUrl(request.getImagesUrl());
@@ -94,7 +101,6 @@ public class ProductService extends BaseService implements ICrudService<ProductR
 
     private ProductEntity getProductById(Long id) {
         return productRepository.findById(id).orElseThrow(() -> new BusinessException("Product not found."));
-
     }
 
     @Override
@@ -115,6 +121,10 @@ public class ProductService extends BaseService implements ICrudService<ProductR
     @Override
     public ProductEntity makeEntity(ProductRequest request) throws BusinessException {
         ProductEntity product = new ProductEntity();
+        product.setCategory(productCategoryRepository.findById(request.getProductCategoryId()).orElseThrow(
+                () -> new BusinessException(HttpStatus.BAD_REQUEST, "Product category not found.")
+        ));
+        product.setPrice(request.getPrice());
         product.setId(request.getId());
         product.setImagesUrl(request.getImagesUrl());
         product.setDescription(request.getDescription());
