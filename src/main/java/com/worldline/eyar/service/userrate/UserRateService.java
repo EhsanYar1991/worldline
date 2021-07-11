@@ -93,11 +93,11 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                 if (!isCurrentUserAdmin()) {
                     predicates.add(ucb.equal(userRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
                 }
-                predicates.add(ucb.and(
-                        ucb.like(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
-                        ucb.like(userRoot.get(UserEntity.UserEntityFields.NAME.getField()), s),
-                        ucb.like(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                        ucb.like(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+                predicates.add(ucb.or(
+                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField())), s),
+                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.NAME.getField())), s),
+                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField())), s),
+                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField())), s)
                 ));
                 return ucb.and(predicates.toArray(new Predicate[0]));
             });
@@ -106,7 +106,7 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                 if (!isCurrentUserAdmin()) {
                     predicates.add(pcb.equal(productRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
                 }
-                predicates.add(pcb.like(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField()), s));
+                predicates.add(pcb.like(cb.lower(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField())), s));
                 return pcb.and(predicates.toArray(new Predicate[0]));
             });
             List<Predicate> predicates = new ArrayList<>();

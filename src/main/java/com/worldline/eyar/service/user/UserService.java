@@ -115,11 +115,11 @@ public class UserService
                 predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
             predicates.add(
-                    cb.and(
-                            cb.like(entity.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
-                            cb.like(entity.get(UserEntity.UserEntityFields.NAME.getField()), s),
-                            cb.like(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                            cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+                    cb.or(
+                            cb.like(cb.lower(entity.get(UserEntity.UserEntityFields.USERNAME.getField())), s),
+                            cb.like(cb.lower(entity.get(UserEntity.UserEntityFields.NAME.getField())), s),
+                            cb.like(cb.lower(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField())), s),
+                            cb.like(cb.lower(entity.get(UserEntity.UserEntityFields.EMAIL.getField())), s)
                     )
             );
             return cb.and(predicates.toArray(new Predicate[0]));

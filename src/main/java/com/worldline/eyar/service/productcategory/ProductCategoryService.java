@@ -80,7 +80,7 @@ public class ProductCategoryService extends BaseService implements ICrudService<
                 cb.and(cb.equal(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
             return cb.and(
-                    cb.like(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.TITLE.getField()), s)
+                    cb.like(cb.lower(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.TITLE.getField())), s)
             );
         }, PageRequest.of(pageNumber, pageSize, Sort.by(ProductCategoryEntity.ProductCategoryEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()

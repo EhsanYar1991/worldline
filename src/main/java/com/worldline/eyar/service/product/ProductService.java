@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -133,21 +134,75 @@ public class ProductService extends BaseService implements ICrudService<ProductR
     }
 
     public ListWithTotalSizeResponse<ProductResponse> query(ProductQueryRequest request) {
-        Page<ProductEntity> page = productRepository.findAll((entity, cq, cb) -> {
+        Page<ProductEntity> page = productRepository.findAll(generateQuerySpecification(request)
+                , PageRequest.of(
+                        request.getPageNumber(),
+                        request.getPageSize(),
+                        Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField()))
+        );
+        return generateListResponse(page);
+    }
+
+    private Specification<ProductEntity> generateQuerySpecification(ProductQueryRequest request){
+        return (entity, cq, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (!isCurrentUserAdmin()) {
                 predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            // TODO Implement query
-            predicates.add(
-                    cb.and(
-//                            cb.like(entity.get(ProductEntity.ProductEntityFields.TITLE.getField()), s),
-//                            cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s)
-                    )
-            );
+            if (request.getTitle() != null && !request.getTitle().isBlank()) {
+                predicates.add(
+                        cb.like(
+                                cb.lower(entity.get(ProductEntity.ProductEntityFields.TITLE.getField())),
+                                likeQueryValue(request.getTitle()))
+                );
+            }
+            if (request.getDescription() != null && !request.getDescription().isBlank()) {
+                predicates.add(
+                        cb.like(
+                                cb.lower(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField())),
+                                likeQueryValue(request.getDescription()))
+                );
+            }
+            if (request.getMinPrice() != null) {
+                predicates.add(
+                        cb.greaterThanOrEqualTo(
+                                entity.get(ProductEntity.ProductEntityFields.PRICE.getField()),
+                                request.getMinPrice())
+                );
+            }
+            if (request.getMaxPrice() != null) {
+                predicates.add(
+                        cb.lessThanOrEqualTo(entity.get(ProductEntity.ProductEntityFields.PRICE.getField()),
+                                request.getMaxPrice())
+                );
+            }
+            if (request.getMinRate() != null) {
+                predicates.add(
+                        cb.greaterThanOrEqualTo(
+                                entity.get(ProductEntity.ProductEntityFields.RATE.getField()),
+                                request.getMinRate())
+                );
+            }
+            if (request.getMaxRate() != null) {
+                predicates.add(
+                        cb.lessThanOrEqualTo(
+                                entity.get(ProductEntity.ProductEntityFields.RATE.getField()),
+                                request.getMaxRate())
+                );
+            }
+            if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+                predicates.add(cb.in(entity
+                                .get(ProductEntity.ProductEntityFields.CATEGORY.getField())
+                                .in(productCategoryRepository.findAllById(request.getCategoryIds()))
+                        )
+                );
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
-        }, PageRequest.of(request.getPageNumber(), request.getPageSize(), Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField())));
-        return generateListResponse(page);
+        };
+    }
+
+    private String likeQueryValue(String value) {
+        return "%" + value.toLowerCase() + "%";
     }
 
     private ListWithTotalSizeResponse<ProductResponse> generateListResponse(Page<ProductEntity> page) {

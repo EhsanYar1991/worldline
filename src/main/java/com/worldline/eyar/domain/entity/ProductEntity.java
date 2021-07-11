@@ -43,9 +43,11 @@ public class ProductEntity extends BaseEntity {
 
     public interface ProductEntityFields extends BaseEntityFields{
         FieldMetaData<String> TITLE = new FieldMetaData<>("title");
-        FieldMetaData<String> RATE = new FieldMetaData<>("rate");
+        FieldMetaData<Float> RATE = new FieldMetaData<>("rate");
+        FieldMetaData<Float> PRICE = new FieldMetaData<>("price");
         FieldMetaData<String> DESCRIPTION = new FieldMetaData<>("description");
         FieldMetaData<Set<UserRateEntity>> USER_RATES = new FieldMetaData<>("userRates");
+        FieldMetaData<ProductCategoryEntity> CATEGORY = new FieldMetaData<>("category");
     }
 
     @PreUpdate
