@@ -21,6 +21,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,32 +89,36 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
         Page<UserRateEntity> page = userRateRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
             List<UserEntity> users = userRepository.findAll((userRoot, ucq, ucb) -> {
-                if (!isCurrentUserAdmin()){
-                    ucb.and(ucb.equal(userRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                List<Predicate> predicates = new ArrayList<>();
+                if (!isCurrentUserAdmin()) {
+                    predicates.add(ucb.equal(userRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
                 }
-                return ucb.and(
-                    ucb.like(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
-                    ucb.like(userRoot.get(UserEntity.UserEntityFields.NAME.getField()), s),
-                    ucb.like(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                    ucb.like(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
-            );});
-            List<ProductEntity> products = productRepository.findAll((productRoot, pcq, pcb) -> {
-                if (!isCurrentUserAdmin()){
-                    pcb.and(pcb.equal(productRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
-                }
-                return pcb.and(
-                        pcb.like(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField()), s)
-                );
+                predicates.add(ucb.and(
+                        ucb.like(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
+                        ucb.like(userRoot.get(UserEntity.UserEntityFields.NAME.getField()), s),
+                        ucb.like(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
+                        ucb.like(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+                ));
+                return ucb.and(predicates.toArray(new Predicate[0]));
             });
-            if (!isCurrentUserAdmin()){
-                cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+            List<ProductEntity> products = productRepository.findAll((productRoot, pcq, pcb) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                if (!isCurrentUserAdmin()) {
+                    predicates.add(pcb.equal(productRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                }
+                predicates.add(pcb.like(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField()), s));
+                return pcb.and(predicates.toArray(new Predicate[0]));
+            });
+            List<Predicate> predicates = new ArrayList<>();
+            if (!isCurrentUserAdmin()) {
+                predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            return cb.and(
+            predicates.add(
                     cb.or(
                             cb.in(entity.get(UserRateEntity.UserRateEntityFields.PRODUCT.getField()).in(products)),
-                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.USER.getField()).in(users))),
-                    cb.equal(entity.get(UserRateEntity.UserRateEntityFields.ACTIVE.getField()), Boolean.TRUE)
+                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.USER.getField()).in(users)))
             );
+            return cb.and(predicates.toArray(new Predicate[0]));
         }, PageRequest.of(pageNumber, pageSize, Sort.by(UserRateEntity.UserRateEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
                 .list(page.get().map(this::makeResponse).collect(Collectors.toList()))

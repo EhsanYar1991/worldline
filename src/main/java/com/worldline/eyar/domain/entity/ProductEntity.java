@@ -31,7 +31,7 @@ public class ProductEntity extends BaseEntity {
     private Float price;
 
     @ElementCollection(fetch = FetchType.LAZY, targetClass = String.class)
-    @Size(min = 0, max = 5, message = "number of images must be between 0 to 5")
+    @Size(max = 5, message = "number of images must be between 0 to 5")
     private Set<String> imagesUrl;
 
     @Column(name = "RATE")

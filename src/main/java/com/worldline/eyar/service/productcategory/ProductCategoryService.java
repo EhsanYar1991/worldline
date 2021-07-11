@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -37,30 +38,33 @@ public class ProductCategoryService extends BaseService implements ICrudService<
         if (request.getId() == null || request.getId().equals(0L)) {
             throw new BusinessException("id must be determined");
         }
-        ProductCategoryEntity product = productCategoryRepository.findById(request.getId())
+        ProductCategoryEntity category = productCategoryRepository.findById(request.getId())
                 .orElseThrow(() -> new BusinessException("Product category not found."));
+        if (!category.getActive() && !isCurrentUserAdmin()){
+            throw new BusinessException(HttpStatus.FORBIDDEN, "You are not authorized to edit category.");
+        }
         productCategoryRepository.findByTitle(request.getTitle()).ifPresent(byTitle -> {
             if (!byTitle.getId().equals(request.getId())) {
                 throw new BusinessException("title is duplicated.");
             }
         });
-        product.setTitle(request.getTitle());
-        product.setParent(getProductCategoryById(request.getParentId()));
-        return makeResponse(productCategoryRepository.save(product));
+        category.setTitle(request.getTitle());
+        category.setParent(getProductCategoryById(request.getParentId()));
+        return makeResponse(productCategoryRepository.save(category));
     }
 
     @Override
     public ProductCategoryResponse delete(Long id) throws BusinessException {
-        ProductCategoryEntity product = getProductCategoryById(id);
-        productCategoryRepository.delete(product);
-        return makeResponse(product);
+        ProductCategoryEntity category = getProductCategoryById(id);
+        productCategoryRepository.delete(category);
+        return makeResponse(category);
     }
 
     @Override
     public ProductCategoryResponse activation(Long id, boolean isActive) throws BusinessException {
-        ProductCategoryEntity product = getProductCategoryById(id);
-        product.setActive(isActive);
-        return makeResponse(productCategoryRepository.save(product));
+        ProductCategoryEntity category = getProductCategoryById(id);
+        category.setActive(isActive);
+        return makeResponse(productCategoryRepository.save(category));
     }
 
     @Override
@@ -91,7 +95,6 @@ public class ProductCategoryService extends BaseService implements ICrudService<
 
     private ProductCategoryEntity getProductCategoryById(Long id) {
         return productCategoryRepository.findById(id).orElseThrow(() -> new BusinessException("Product category not found."));
-
     }
 
     @Override

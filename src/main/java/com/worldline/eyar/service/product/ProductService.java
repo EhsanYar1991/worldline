@@ -1,6 +1,7 @@
 package com.worldline.eyar.service.product;
 
 import com.worldline.eyar.common.ListWithTotalSizeResponse;
+import com.worldline.eyar.common.request.product.ProductQueryRequest;
 import com.worldline.eyar.common.request.product.ProductRequest;
 import com.worldline.eyar.common.response.product.ProductResponse;
 import com.worldline.eyar.domain.BaseEntity;
@@ -17,6 +18,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -43,9 +47,12 @@ public class ProductService extends BaseService implements ICrudService<ProductR
         }
         ProductEntity product = productRepository.findById(request.getId())
                 .orElseThrow(() -> new BusinessException("Product not found."));
+        if (!product.getActive() && !isCurrentUserAdmin()) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "You are not authorized to edit product.");
+        }
         productRepository.findByTitle(request.getTitle()).ifPresent(byTitle -> {
             if (!byTitle.getId().equals(request.getId())) {
-                throw new BusinessException("title is duplicated.");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "title is duplicated.");
             }
         });
         product.setCategory(productCategoryRepository.findById(request.getProductCategoryId()).orElseThrow(
@@ -81,7 +88,7 @@ public class ProductService extends BaseService implements ICrudService<ProductR
     public ListWithTotalSizeResponse<ProductResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<ProductEntity> page = productRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
-            if (!isCurrentUserAdmin()){
+            if (!isCurrentUserAdmin()) {
                 cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
             return cb.and(
@@ -89,14 +96,7 @@ public class ProductService extends BaseService implements ICrudService<ProductR
                     cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s)
             );
         }, PageRequest.of(pageNumber, pageSize, Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField())));
-        ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
-                .list(page.get().map(this::makeResponse).collect(Collectors.toList()))
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalPage(page.getTotalPages())
-                .totalSize(page.getTotalElements())
-                .build();
-        return (ListWithTotalSizeResponse<ProductResponse>) listWithTotalSizeResponse;
+        return generateListResponse(page);
     }
 
     private ProductEntity getProductById(Long id) {
@@ -131,4 +131,35 @@ public class ProductService extends BaseService implements ICrudService<ProductR
         product.setTitle(request.getTitle());
         return product;
     }
+
+    public ListWithTotalSizeResponse<ProductResponse> query(ProductQueryRequest request) {
+        Page<ProductEntity> page = productRepository.findAll((entity, cq, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (!isCurrentUserAdmin()) {
+                predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+            }
+            // TODO Implement query
+            predicates.add(
+                    cb.and(
+//                            cb.like(entity.get(ProductEntity.ProductEntityFields.TITLE.getField()), s),
+//                            cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s)
+                    )
+            );
+            return cb.and(predicates.toArray(new Predicate[0]));
+        }, PageRequest.of(request.getPageNumber(), request.getPageSize(), Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField())));
+        return generateListResponse(page);
+    }
+
+    private ListWithTotalSizeResponse<ProductResponse> generateListResponse(Page<ProductEntity> page) {
+        ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
+                .list(page.get().map(this::makeResponse).collect(Collectors.toList()))
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalPage(page.getTotalPages())
+                .totalSize(page.getTotalElements())
+                .build();
+        return (ListWithTotalSizeResponse<ProductResponse>) listWithTotalSizeResponse;
+    }
+
+
 }

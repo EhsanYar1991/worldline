@@ -13,11 +13,15 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,8 +73,12 @@ public class UserService
         if (request.getId() == null || request.getId().equals(0L)) {
             throw new BusinessException("id must be determined");
         }
-        userRepository.findById(request.getId())
+        UserEntity user = userRepository.findById(request.getId())
                 .orElseThrow(() -> new BusinessException("User not found."));
+        if (!(isCurrentUserAdmin() || getCurrentUser().getId().equals(request.getId())) ||
+                (!user.getActive() && !isCurrentUserAdmin())){
+            throw new BusinessException(HttpStatus.FORBIDDEN, "You are not authorized to edit user.");
+        }
         userRepository.findByUsername(request.getUsername()).ifPresent(byUsername -> {
             if (!byUsername.getId().equals(request.getId())) {
                 throw new BusinessException("username is duplicated.");
@@ -102,15 +110,19 @@ public class UserService
     public ListWithTotalSizeResponse<UserResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<UserEntity> page = userRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
+            List<Predicate> predicates = new ArrayList<>();
             if (!isCurrentUserAdmin()){
-                cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            return cb.and(
-                    cb.like(entity.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
-                    cb.like(entity.get(UserEntity.UserEntityFields.NAME.getField()), s),
-                    cb.like(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                    cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+            predicates.add(
+                    cb.and(
+                            cb.like(entity.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
+                            cb.like(entity.get(UserEntity.UserEntityFields.NAME.getField()), s),
+                            cb.like(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
+                            cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+                    )
             );
+            return cb.and(predicates.toArray(new Predicate[0]));
 
         }, PageRequest.of(pageNumber, pageSize, Sort.by(UserEntity.UserEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
