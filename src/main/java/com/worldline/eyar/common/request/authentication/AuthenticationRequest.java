@@ -1,4 +1,4 @@
-package com.worldline.eyar.common.authentication;
+package com.worldline.eyar.common.request.authentication;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

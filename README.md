@@ -1,21 +1,22 @@
 # worldline
-Technical Task
+###Technical Task
 
-Default admin:
+###Default admin:
 
 app.security.admin.username=admin
+
 app.security.admin.password=admin
 app.security.admin.email=admin@domain.com
 app.security.admin.name=Admin
 app.security.admin.lastname=Administrator
 
 
-Swagger:
+#Swagger:
 http://localhost:8080/swagger-ui.html
 
 
 
-Authorization:
+##Authorization:
 
 1- Register: /auth/register
 

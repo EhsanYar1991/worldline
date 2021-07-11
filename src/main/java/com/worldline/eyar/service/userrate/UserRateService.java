@@ -3,6 +3,7 @@ package com.worldline.eyar.service.userrate;
 import com.worldline.eyar.common.ListWithTotalSizeResponse;
 import com.worldline.eyar.common.request.userrate.UserRateRequest;
 import com.worldline.eyar.common.response.userrate.UserRateResponse;
+import com.worldline.eyar.domain.BaseEntity;
 import com.worldline.eyar.domain.entity.ProductEntity;
 import com.worldline.eyar.domain.entity.UserEntity;
 import com.worldline.eyar.domain.entity.UserRateEntity;
@@ -85,17 +86,27 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
     public ListWithTotalSizeResponse<UserRateResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<UserRateEntity> page = userRateRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
-            List<UserEntity> users = userRepository.findAll((userRoot, ucq, ucb) -> ucb.and(
+            List<UserEntity> users = userRepository.findAll((userRoot, ucq, ucb) -> {
+                if (!isCurrentUserAdmin()){
+                    ucb.and(ucb.equal(userRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                }
+                return ucb.and(
                     ucb.like(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
                     ucb.like(userRoot.get(UserEntity.UserEntityFields.NAME.getField()), s),
                     ucb.like(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                    ucb.like(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField()), s),
-                    ucb.equal(userRoot.get(ProductEntity.ProductEntityFields.ACTIVE.getField()), Boolean.TRUE)
-            ));
-            List<ProductEntity> products = productRepository.findAll((productRoot, pcq, pcb) -> cb.and(
-                    pcb.like(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField()), s),
-                    pcb.equal(productRoot.get(ProductEntity.ProductEntityFields.ACTIVE.getField()), Boolean.TRUE)
-            ));
+                    ucb.like(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
+            );});
+            List<ProductEntity> products = productRepository.findAll((productRoot, pcq, pcb) -> {
+                if (!isCurrentUserAdmin()){
+                    pcb.and(pcb.equal(productRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                }
+                return pcb.and(
+                        pcb.like(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField()), s)
+                );
+            });
+            if (!isCurrentUserAdmin()){
+                cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+            }
             return cb.and(
                     cb.or(
                             cb.in(entity.get(UserRateEntity.UserRateEntityFields.PRODUCT.getField()).in(products)),

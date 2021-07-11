@@ -3,7 +3,7 @@ package com.worldline.eyar.service.user;
 import com.worldline.eyar.common.ListWithTotalSizeResponse;
 import com.worldline.eyar.common.request.user.UserRequest;
 import com.worldline.eyar.common.response.user.UserResponse;
-import com.worldline.eyar.domain.entity.ProductEntity;
+import com.worldline.eyar.domain.BaseEntity;
 import com.worldline.eyar.domain.entity.UserEntity;
 import com.worldline.eyar.exception.BusinessException;
 import com.worldline.eyar.repository.UserRepository;
@@ -102,12 +102,14 @@ public class UserService
     public ListWithTotalSizeResponse<UserResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<UserEntity> page = userRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
+            if (!isCurrentUserAdmin()){
+                cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+            }
             return cb.and(
                     cb.like(entity.get(UserEntity.UserEntityFields.USERNAME.getField()), s),
                     cb.like(entity.get(UserEntity.UserEntityFields.NAME.getField()), s),
                     cb.like(entity.get(UserEntity.UserEntityFields.LAST_NAME.getField()), s),
-                    cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s),
-                    cb.equal(entity.get(ProductEntity.ProductEntityFields.ACTIVE.getField()), Boolean.TRUE)
+                    cb.like(entity.get(UserEntity.UserEntityFields.EMAIL.getField()), s)
             );
 
         }, PageRequest.of(pageNumber, pageSize, Sort.by(UserEntity.UserEntityFields.MODIFICATION_TIME.getField())));

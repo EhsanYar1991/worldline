@@ -1,6 +1,6 @@
 package com.worldline.eyar.service.authentication;
 
-import com.worldline.eyar.common.authentication.AuthenticationRequest;
+import com.worldline.eyar.common.request.authentication.AuthenticationRequest;
 import com.worldline.eyar.common.request.user.RegisterRequest;
 import com.worldline.eyar.common.request.user.UserRequest;
 import com.worldline.eyar.common.response.authentication.AuthenticationResponse;

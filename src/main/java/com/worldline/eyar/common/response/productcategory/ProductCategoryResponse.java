@@ -1,25 +1,21 @@
-package com.worldline.eyar.common.response.product;
+package com.worldline.eyar.common.response.productcategory;
 
 import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Set;
 
 @Data
 @Builder
-public class ProductResponse implements Serializable {
+public class ProductCategoryResponse implements Serializable {
 
     private Long id;
     private String title;
-    private String description;
-    private Set<String> imagesUrl;
-    private Double rate;
+    private Long parentId;
     private String generatedBy;
     private String lastModifiedBy;
     private Instant submittedTime;
     private Instant modificationTime;
-
 
 }

@@ -21,30 +21,38 @@ public class ProductEntity extends BaseEntity {
     @Column(name = "TITLE", unique = true)
     private String title;
 
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH, targetEntity = ProductCategoryEntity.class)
+    private ProductCategoryEntity category;
+
     @Column(name = "DESCRIPTION", unique = true)
     private String description;
+
+    @Column(name = "PRICE")
+    private Float price;
 
     @ElementCollection(fetch = FetchType.LAZY, targetClass = String.class)
     @Size(min = 0, max = 5, message = "number of images must be between 0 to 5")
     private Set<String> imagesUrl;
 
-    @Transient
+    @Column(name = "RATE")
     private Double rate;
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL, targetEntity = UserRateEntity.class)
-    private Set<UserRateEntity> userRateEntities = new HashSet<>();
+    private Set<UserRateEntity> userRates = new HashSet<>();
 
-
-    public Double getRate() {
-        return userRateEntities != null ?
-                userRateEntities.stream().mapToInt(UserRateEntity::getRate).average().orElse(0) :
-                null;
-    }
 
     public interface ProductEntityFields extends BaseEntityFields{
         FieldMetaData<String> TITLE = new FieldMetaData<>("title");
         FieldMetaData<String> RATE = new FieldMetaData<>("rate");
         FieldMetaData<String> DESCRIPTION = new FieldMetaData<>("description");
+        FieldMetaData<Set<UserRateEntity>> USER_RATES = new FieldMetaData<>("userRates");
+    }
+
+    @PreUpdate
+    public void onPreUpdate(){
+        this.rate = userRates != null ?
+                userRates.stream().mapToInt(UserRateEntity::getRate).average().orElse(0) :
+                null;
     }
 
 }
