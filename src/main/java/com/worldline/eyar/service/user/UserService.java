@@ -89,9 +89,7 @@ public class UserService
 
     @Override
     public UserResponse delete(Long id) throws BusinessException {
-        UserEntity user = getUserById(id);
-        userRepository.delete(user);
-        return makeResponse(user);
+        return activation(id,Boolean.FALSE);
     }
 
     @Override

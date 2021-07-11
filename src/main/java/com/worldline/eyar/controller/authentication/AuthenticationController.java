@@ -1,5 +1,6 @@
 package com.worldline.eyar.controller.authentication;
 
+
 import com.worldline.eyar.common.request.authentication.AuthenticationRequest;
 import com.worldline.eyar.common.request.user.RegisterRequest;
 import com.worldline.eyar.controller.BaseController;

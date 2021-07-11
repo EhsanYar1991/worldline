@@ -75,9 +75,7 @@ public class ProductService extends BaseService implements ICrudService<ProductR
 
     @Override
     public ProductResponse activation(Long id, boolean isActive) throws BusinessException {
-        ProductEntity product = getProductById(id);
-        product.setActive(isActive);
-        return makeResponse(productRepository.save(product));
+        return activation(id,Boolean.FALSE);
     }
 
     @Override
@@ -89,12 +87,16 @@ public class ProductService extends BaseService implements ICrudService<ProductR
     public ListWithTotalSizeResponse<ProductResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<ProductEntity> page = productRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
+            List<Predicate> predicates = new ArrayList<>();
             if (!isCurrentUserAdmin()) {
-                cb.and(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            return cb.and(
+            predicates.add(cb.and(
                     cb.like(entity.get(ProductEntity.ProductEntityFields.TITLE.getField()), s),
                     cb.like(entity.get(ProductEntity.ProductEntityFields.DESCRIPTION.getField()), s)
+            ));
+            return cb.and(
+                    predicates.toArray(new Predicate[0])
             );
         }, PageRequest.of(pageNumber, pageSize, Sort.by(ProductEntity.ProductEntityFields.MODIFICATION_TIME.getField())));
         return generateListResponse(page);
@@ -112,6 +114,11 @@ public class ProductService extends BaseService implements ICrudService<ProductR
                 .imagesUrl(entity.getImagesUrl())
                 .lastModifiedBy(entity.getLastModifiedBy())
                 .rate(entity.getRate())
+                .price(entity.getPrice())
+                .category(entity.getCategory() != null ?
+                        ProductResponse.LazyProductCategoryResponse.builder().id(entity.getCategory().getId()).title(entity.getCategory().getTitle()).build() :
+                        null
+                )
                 .modificationTime(entity.getModificationTime())
                 .submittedTime(entity.getSubmittedTime())
                 .title(entity.getTitle())

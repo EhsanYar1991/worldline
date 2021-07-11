@@ -17,5 +17,6 @@ public class ProductCategoryResponse implements Serializable {
     private String lastModifiedBy;
     private Instant submittedTime;
     private Instant modificationTime;
+    private Boolean active;
 
 }

@@ -20,9 +20,9 @@ public class CrudController<REQUEST, RESPONSE extends Serializable> extends Base
     private static final String ACTIVATION_URL_CONTEXT = "/activation";
     private static final String ID_PARAM = "id";
     private static final String SEARCH_PARAM = "search";
-    private static final String PAGE_NUMBER_PARAM = "username";
-    private static final String PAGE_SIZE_PARAM = "page";
-    private static final String ACTIVE_PARAM = "size";
+    private static final String PAGE_NUMBER_PARAM = "page";
+    private static final String PAGE_SIZE_PARAM = "size";
+    private static final String ACTIVE_PARAM = "active";
 
 
     private final ICrudService<REQUEST,RESPONSE,?> crudService;

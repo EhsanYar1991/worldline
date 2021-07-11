@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRateRepository extends JpaRepository<UserRateEntity, Long>, JpaSpecificationExecutor<UserRateEntity> {
-    Optional<Object> findByProductAndUser(ProductEntity product, UserEntity user);
+    Optional<UserRateEntity> findByProductAndUser(ProductEntity product, UserEntity user);
+
+    List<UserRateEntity> findAllByProduct(ProductEntity product);
 }

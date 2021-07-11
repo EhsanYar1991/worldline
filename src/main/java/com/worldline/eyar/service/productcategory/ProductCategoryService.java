@@ -15,6 +15,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -55,9 +58,7 @@ public class ProductCategoryService extends BaseService implements ICrudService<
 
     @Override
     public ProductCategoryResponse delete(Long id) throws BusinessException {
-        ProductCategoryEntity category = getProductCategoryById(id);
-        productCategoryRepository.delete(category);
-        return makeResponse(category);
+        return activation(id,Boolean.FALSE);
     }
 
     @Override
@@ -76,11 +77,15 @@ public class ProductCategoryService extends BaseService implements ICrudService<
     public ListWithTotalSizeResponse<ProductCategoryResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<ProductCategoryEntity> page = productCategoryRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
+            List<Predicate> predicateList = new ArrayList<>();
             if (!isCurrentUserAdmin()){
-                cb.and(cb.equal(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.ACTIVE.getField()), Boolean.TRUE));
+                predicateList.add(cb.equal(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            return cb.and(
+            predicateList.add(cb.and(
                     cb.like(cb.lower(entity.get(ProductCategoryEntity.ProductCategoryEntityFields.TITLE.getField())), s)
+            ));
+            return cb.and(
+                    predicateList.toArray(new Predicate[0])
             );
         }, PageRequest.of(pageNumber, pageSize, Sort.by(ProductCategoryEntity.ProductCategoryEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
@@ -105,6 +110,7 @@ public class ProductCategoryService extends BaseService implements ICrudService<
                 .submittedTime(entity.getSubmittedTime())
                 .generatedBy(entity.getGeneratedBy())
                 .title(entity.getTitle())
+                .active(entity.getActive())
                 .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
                 .build();
     }
@@ -113,7 +119,7 @@ public class ProductCategoryService extends BaseService implements ICrudService<
     public ProductCategoryEntity makeEntity(ProductCategoryRequest request) throws BusinessException {
         ProductCategoryEntity product = new ProductCategoryEntity();
         product.setId(request.getId());
-        product.setParent(getProductCategoryById(request.getParentId()));
+        product.setParent(request.getParentId() != null ? getProductCategoryById(request.getParentId()) : null);
         product.setTitle(request.getTitle());
         return product;
     }

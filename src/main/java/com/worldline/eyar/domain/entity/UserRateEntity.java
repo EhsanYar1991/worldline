@@ -27,7 +27,7 @@ public class UserRateEntity extends BaseEntity {
     private ProductEntity product;
 
     @NotNull(message = "user must be determined")
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH, optional = false, targetEntity = UserEntity.class)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH, optional = false, targetEntity = UserEntity.class)
     private UserEntity user;
 
     @Max(value = 5, message = "Rate must be less than 5.")

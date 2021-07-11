@@ -17,6 +17,7 @@ public class UserRateResponse implements Serializable {
     private String lastModifiedBy;
     private Instant submittedTime;
     private Instant modificationTime;
+    private Boolean active;
 
     @Data
     @Builder

@@ -24,7 +24,7 @@ public class ProductEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH, targetEntity = ProductCategoryEntity.class)
     private ProductCategoryEntity category;
 
-    @Column(name = "DESCRIPTION", unique = true)
+    @Column(name = "DESCRIPTION")
     private String description;
 
     @Column(name = "PRICE")
@@ -48,13 +48,6 @@ public class ProductEntity extends BaseEntity {
         FieldMetaData<String> DESCRIPTION = new FieldMetaData<>("description");
         FieldMetaData<Set<UserRateEntity>> USER_RATES = new FieldMetaData<>("userRates");
         FieldMetaData<ProductCategoryEntity> CATEGORY = new FieldMetaData<>("category");
-    }
-
-    @PreUpdate
-    public void onPreUpdate(){
-        this.rate = userRates != null ?
-                userRates.stream().mapToInt(UserRateEntity::getRate).average().orElse(0) :
-                null;
     }
 
 }

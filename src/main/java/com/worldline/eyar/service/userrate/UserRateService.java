@@ -5,7 +5,6 @@ import com.worldline.eyar.common.request.userrate.UserRateRequest;
 import com.worldline.eyar.common.response.userrate.UserRateResponse;
 import com.worldline.eyar.domain.BaseEntity;
 import com.worldline.eyar.domain.entity.ProductEntity;
-import com.worldline.eyar.domain.entity.UserEntity;
 import com.worldline.eyar.domain.entity.UserRateEntity;
 import com.worldline.eyar.domain.enums.Authority;
 import com.worldline.eyar.exception.BusinessException;
@@ -37,14 +36,28 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
 
     @Override
     public UserRateResponse add(UserRateRequest request) throws BusinessException {
+        ProductEntity product = productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Product not found."));
         if (userRateRepository.findByProductAndUser(
-                productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Product not found.")),
+                product,
                 getCurrentUser())
                 .isPresent()) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "User has already rated.");
         }
         request.setId(null);
-        return makeResponse(userRateRepository.save(makeEntity(request)));
+        UserRateEntity save = userRateRepository.saveAndFlush(makeEntity(request));
+        updateProductRate(product);
+        return makeResponse(save);
+    }
+
+    private void updateProductRate(ProductEntity product) {
+        List<UserRateEntity> userRates = userRateRepository.findAllByProduct(product);
+        product.getUserRates().addAll(userRates);
+        product.setRate(
+                userRates != null ?
+                        userRates.stream().mapToInt(UserRateEntity::getRate).average().orElse(0) :
+                        null
+        );
+        productRepository.save(product);
     }
 
     @Override
@@ -58,18 +71,18 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                 (userRate.getUser() != null && !userRate.getUser().getUsername().equals(getCurrentUser().getName()))) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "You are not authorized to change the user rate.");
         }
-
-        userRate.setProduct(productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Product not found.")));
+        ProductEntity product = productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Product not found."));
+        userRate.setProduct(product);
         userRate.setComment(request.getComment());
         userRate.setRate(request.getRate());
-        return makeResponse(userRateRepository.save(userRate));
+        UserRateEntity save = userRateRepository.saveAndFlush(userRate);
+        updateProductRate(product);
+        return makeResponse(save);
     }
 
     @Override
     public UserRateResponse delete(Long id) throws BusinessException {
-        UserRateEntity product = getProductById(id);
-        userRateRepository.delete(product);
-        return makeResponse(product);
+        return activation(id, Boolean.FALSE);
     }
 
     @Override
@@ -88,36 +101,11 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
     public ListWithTotalSizeResponse<UserRateResponse> list(String search, int pageNumber, int pageSize) throws BusinessException {
         Page<UserRateEntity> page = userRateRepository.findAll((entity, cq, cb) -> {
             final String s = "%" + search.toLowerCase() + "%";
-            List<UserEntity> users = userRepository.findAll((userRoot, ucq, ucb) -> {
-                List<Predicate> predicates = new ArrayList<>();
-                if (!isCurrentUserAdmin()) {
-                    predicates.add(ucb.equal(userRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
-                }
-                predicates.add(ucb.or(
-                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.USERNAME.getField())), s),
-                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.NAME.getField())), s),
-                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.LAST_NAME.getField())), s),
-                        ucb.like(ucb.lower(userRoot.get(UserEntity.UserEntityFields.EMAIL.getField())), s)
-                ));
-                return ucb.and(predicates.toArray(new Predicate[0]));
-            });
-            List<ProductEntity> products = productRepository.findAll((productRoot, pcq, pcb) -> {
-                List<Predicate> predicates = new ArrayList<>();
-                if (!isCurrentUserAdmin()) {
-                    predicates.add(pcb.equal(productRoot.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
-                }
-                predicates.add(pcb.like(cb.lower(productRoot.get(ProductEntity.ProductEntityFields.TITLE.getField())), s));
-                return pcb.and(predicates.toArray(new Predicate[0]));
-            });
             List<Predicate> predicates = new ArrayList<>();
             if (!isCurrentUserAdmin()) {
                 predicates.add(cb.equal(entity.get(BaseEntity.BaseEntityFields.ACTIVE.getField()), Boolean.TRUE));
             }
-            predicates.add(
-                    cb.or(
-                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.PRODUCT.getField()).in(products)),
-                            cb.in(entity.get(UserRateEntity.UserRateEntityFields.USER.getField()).in(users)))
-            );
+            predicates.add(cb.like(cb.lower(entity.get(UserRateEntity.UserRateEntityFields.COMMENT.getField())), s));
             return cb.and(predicates.toArray(new Predicate[0]));
         }, PageRequest.of(pageNumber, pageSize, Sort.by(UserRateEntity.UserRateEntityFields.MODIFICATION_TIME.getField())));
         ListWithTotalSizeResponse<?> listWithTotalSizeResponse = ListWithTotalSizeResponse.builder()
@@ -157,6 +145,7 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
                 .comment(entity.getComment())
                 .lastModifiedBy(entity.getLastModifiedBy())
                 .rate(entity.getRate())
+                .active(entity.getActive())
                 .modificationTime(entity.getModificationTime())
                 .submittedTime(entity.getSubmittedTime())
                 .build();
@@ -168,7 +157,7 @@ public class UserRateService extends BaseService implements ICrudService<UserRat
         entity.setId(request.getId());
         entity.setRate(request.getRate());
         entity.setProduct(productRepository.findById(request.getProductId()).orElseThrow(() -> new BusinessException("Product not found.")));
-        entity.setUser(userRepository.findByUsername(getCurrentUser().getName()).orElseThrow(() -> new BusinessException("User not found.")));
+        entity.setUser(getCurrentUser());
         entity.setComment(request.getComment());
         return entity;
     }
