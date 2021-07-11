@@ -31,10 +31,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             "/configuration/**",
             "/swagger-resources/**",
             "/v2/api-docs"};
-    private static final String LOGIN_URL = "/auth/login";
-    private static final String AUTHENTICATE_URL = "/auth/authenticate";
-    private static final String REGISTRATION_URL = "/auth/register";
-    private static final String SWAGGER_URL = "/swagger-ui.html";
+
+    private static final String[] AUTHORIZED_URLS = {
+            "/auth/login",
+            "/auth/authenticate",
+            "/auth/register",
+            "/swagger-ui.html",
+            "/product/query"};
+
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
@@ -56,14 +60,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeRequests().antMatchers(AUTHENTICATE_URL, LOGIN_URL, REGISTRATION_URL, SWAGGER_URL).permitAll().
+                .authorizeRequests().antMatchers(AUTHORIZED_URLS).permitAll().
                 anyRequest().authenticated().and().
                 exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
+    public void configure(WebSecurity web) {
         web.ignoring().mvcMatchers(HttpMethod.OPTIONS, "/**");
         // ignore swagger
         web.ignoring().mvcMatchers(SWAGGER_URLS);
