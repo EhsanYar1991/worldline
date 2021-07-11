@@ -18,6 +18,7 @@ public class AuthenticationController extends BaseController {
     public static final String AUTHENTICATION_CONTEXT_URL = "/auth";
     private static final String LOGIN_URL = "/login";
     private static final String AUTHENTICATE_URL = "/authenticate";
+    private static final String CURRENT_USER_INFO = "/user-info";
     private static final String USERNAME_PARAM = "username";
     private static final String PASSWORD_PARAM = "password";
     private static final String USERNAME_VALIDATION_MSG = "username must be determined.";
@@ -31,9 +32,14 @@ public class AuthenticationController extends BaseController {
         return okResponse(authenticationService.login(username, password));
     }
 
-    @RequestMapping(value = AUTHENTICATE_URL, method = RequestMethod.POST)
+    @PostMapping(value = AUTHENTICATE_URL)
     public ResponseEntity<?> authenticate(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
         return okResponse(authenticationService.authenticate(authenticationRequest));
+    }
+
+    @GetMapping(value = CURRENT_USER_INFO)
+    public ResponseEntity<?> getCurrentUserInfo() {
+        return okResponse(authenticationService.getCurrentUserInfo());
     }
 
 }

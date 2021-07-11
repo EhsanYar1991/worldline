@@ -2,6 +2,7 @@ package com.worldline.eyar.service.authentication;
 
 import com.worldline.eyar.common.authentication.AuthenticationRequest;
 import com.worldline.eyar.common.response.authentication.AuthenticationResponse;
+import com.worldline.eyar.common.response.user.UserResponse;
 import com.worldline.eyar.config.security.JwtTokenUtil;
 import com.worldline.eyar.exception.BusinessException;
 import com.worldline.eyar.service.BaseService;
@@ -41,4 +42,7 @@ public class AuthenticationService extends BaseService {
         }
     }
 
+    public UserResponse getCurrentUserInfo() {
+        return userService.makeResponse(getCurrentUser());
+    }
 }
